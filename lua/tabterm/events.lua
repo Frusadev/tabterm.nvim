@@ -214,6 +214,7 @@ local function stabilize_panel_for_terminal_dispose(workspace)
 		and vim.api.nvim_get_current_win() ~= sidebar_win
 	then
 		pcall(vim.api.nvim_set_current_win, sidebar_win)
+		pcall(vim.cmd, "stopinsert")
 	end
 
 	local panel_win = ui.panel.winid
@@ -226,7 +227,10 @@ local function stabilize_panel_for_terminal_dispose(workspace)
 	vim.bo[scratch].bufhidden = "wipe"
 	vim.bo[scratch].swapfile = false
 	vim.bo[scratch].modifiable = false
+	local save_ei = vim.o.eventignore
+	vim.o.eventignore = "all"
 	pcall(vim.api.nvim_win_set_buf, panel_win, scratch)
+	vim.o.eventignore = save_ei
 	return true
 end
 

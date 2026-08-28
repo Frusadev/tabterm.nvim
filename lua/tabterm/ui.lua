@@ -285,6 +285,21 @@ local function single_line_message(message)
   return vim.trim(message)
 end
 
+---@param winid integer?
+---@param bufnr integer?
+local function set_window_buffer(winid, bufnr)
+  if not util.valid_win(winid) or not util.valid_buf(bufnr) then
+    return
+  end
+  if vim.api.nvim_win_get_buf(winid) == bufnr then
+    return
+  end
+  local save_ei = vim.o.eventignore
+  vim.o.eventignore = "all"
+  pcall(vim.api.nvim_win_set_buf, winid, bufnr)
+  vim.o.eventignore = save_ei
+end
+
 ---@param terminal tabterm.Terminal
 ---@return string
 local function panel_terminal_filetype(terminal)
@@ -782,9 +797,7 @@ function M.render_placeholder(tabpage, workspace)
     table.insert(lines, placeholder.hint)
   end
 
-  if vim.api.nvim_win_get_buf(ui.panel.winid) ~= buf then
-    vim.api.nvim_win_set_buf(ui.panel.winid, buf)
-  end
+  set_window_buffer(ui.panel.winid, buf)
   vim.bo[buf].modifiable = true
   vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
   vim.bo[buf].modifiable = false
@@ -804,9 +817,7 @@ function M.render_panel(tabpage, workspace)
       if vim.bo[bufnr].filetype ~= expected_ft then
         vim.bo[bufnr].filetype = expected_ft
       end
-      if vim.api.nvim_win_get_buf(ui.panel.winid) ~= bufnr then
-        vim.api.nvim_win_set_buf(ui.panel.winid, bufnr)
-      end
+      set_window_buffer(ui.panel.winid, bufnr)
       if vim.bo[bufnr].bufhidden ~= "hide" then
         vim.bo[bufnr].bufhidden = "hide"
       end
@@ -856,9 +867,7 @@ function M.start_terminal(tabpage, terminal)
   vim.bo[bufnr].filetype = panel_terminal_filetype(terminal)
   vim.b[bufnr].tabterm_normal_mode_intent = false
   terminal_keymaps(bufnr)
-  if vim.api.nvim_win_get_buf(ui.panel.winid) ~= bufnr then
-    vim.api.nvim_win_set_buf(ui.panel.winid, bufnr)
-  end
+  set_window_buffer(ui.panel.winid, bufnr)
 
   local job_cmd
   local job_env
@@ -922,9 +931,7 @@ function M.execute(cmd)
       if vim.bo[args.bufnr].filetype ~= expected_ft then
         vim.bo[args.bufnr].filetype = expected_ft
       end
-      if vim.api.nvim_win_get_buf(ui.panel.winid) ~= args.bufnr then
-        vim.api.nvim_win_set_buf(ui.panel.winid, args.bufnr)
-      end
+      set_window_buffer(ui.panel.winid, args.bufnr)
       if vim.bo[args.bufnr].bufhidden ~= "hide" then
         vim.bo[args.bufnr].bufhidden = "hide"
       end

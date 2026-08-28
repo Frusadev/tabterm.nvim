@@ -163,6 +163,7 @@ local function move_focus_to_sidebar_before_delete(workspace)
 	local sidebar_win = ui.sidebar.winid
 	if sidebar_win and vim.api.nvim_win_is_valid(sidebar_win) and vim.api.nvim_get_current_win() ~= sidebar_win then
 		vim.api.nvim_set_current_win(sidebar_win)
+		pcall(vim.cmd, "stopinsert")
 	end
 end
 
@@ -698,6 +699,7 @@ function M.focus_sidebar()
 			vim.api.nvim_win_set_cursor(ui.sidebar.winid, { row, 0 })
 		end
 		vim.api.nvim_set_current_win(ui.sidebar.winid)
+		pcall(vim.cmd, "stopinsert")
 	end
 end
 
